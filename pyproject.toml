@@ -1,0 +1,7 @@
+
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+dependencies = [
+    "transformers>=4.35.0",
+    "torch>=2.1.0",
+]
