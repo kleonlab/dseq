@@ -8,9 +8,7 @@ import time
 import requests
 import pandas as pd
 from io import StringIO
-import requests
-import pandas as pd
-from io import StringIO
+
 
 
 def map_ensembl_to_uniprot(ensembl_ids, from_db="Ensembl", to_db="UniProtKB"):
