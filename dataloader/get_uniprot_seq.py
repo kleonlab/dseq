@@ -118,20 +118,23 @@ def fetch_fasta_for_accessions(accessions):
     return fasta_dict
 
 
+import requests
+import pandas as pd
+from io import StringIO
 
-def fetch_uniprot_metadata(accessions, fields=None):
+def fetch_uniprot_metadata(accessions, fields=None, batch_size=80):
     """
-    Fetch UniProt metadata for a list of accessions.
-    
+    Fetch UniProt metadata for a list of accessions in batches.
+
     Args:
         accessions: List of UniProt accession IDs
         fields: List of field names to retrieve (if None, gets common fields)
-    
+        batch_size: How many accessions per REST query
+
     Returns:
-        pandas DataFrame with requested fields
+        pandas DataFrame with requested fields (possibly empty if nothing retrieved)
     """
     if fields is None:
-        # Default common fields
         fields = [
             "accession",
             "id",
@@ -139,28 +142,58 @@ def fetch_uniprot_metadata(accessions, fields=None):
             "organism_name",
             "protein_name",
             "cc_function",
-            "go", 
-            "ft_domain", 
-            "ft_region"
+            "go",
+            "ft_domain",
+            "ft_region",
         ]
-    
-    # Build query
-    query_parts = [f"accession:{acc}" for acc in accessions]
-    query = " OR ".join(query_parts)
-    
+
     url = "https://rest.uniprot.org/uniprotkb/search"
-    params = {
-        "query": query,
-        "format": "tsv",
-        "fields": ",".join(fields)
-    }
-    
-    resp = requests.get(url, params=params)
-    resp.raise_for_status()
-    
-    # Parse TSV response
-    df = pd.read_csv(StringIO(resp.text), sep="\t")
-    return df
+    all_frames = []
+
+    # Process in chunks
+    for i in range(0, len(accessions), batch_size):
+        batch = accessions[i : i + batch_size]
+        if not batch:
+            continue
+
+        query_parts = [f"accession:{acc}" for acc in batch]
+        query = " OR ".join(query_parts)
+
+        params = {
+            "query": query,
+            "format": "tsv",
+            "fields": ",".join(fields),
+            # "size": batch_size,  # optional; UniProt defaults are fine for accession queries
+        }
+
+        try:
+            resp = requests.get(url, params=params)
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print(f"[WARN] HTTP error for metadata batch {i // batch_size}: {e}")
+            # If you want to debug further:
+            # print("Response text:", resp.text)
+            continue
+
+        # Empty response?
+        if not resp.text.strip():
+            print(f"[INFO] Empty metadata response for batch {i // batch_size}")
+            continue
+
+        df_batch = pd.read_csv(StringIO(resp.text), sep="\t")
+        if df_batch.empty:
+            print(f"[INFO] No rows parsed for metadata batch {i // batch_size}")
+            continue
+
+        all_frames.append(df_batch)
+
+    if not all_frames:
+        print("[INFO] No metadata retrieved for any batch.")
+        return pd.DataFrame()
+
+    metadata_df = pd.concat(all_frames, ignore_index=True)
+    return metadata_df
+
 
 
 uni_accessions = mapping_df["Entry"].unique().tolist()
@@ -174,5 +207,4 @@ print(metadata_df)
 print(metadata_df.size)
 
 print(metadata_df[metadata_df['Entry'] == 'P05549'])
-
 
