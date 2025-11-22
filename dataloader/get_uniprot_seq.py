@@ -78,3 +78,7 @@ print(mapping_df.head())
 uni_accessions = mapping_df["To"].unique().tolist()
 fasta_dict = fetch_fasta_for_accessions(uni_accessions)
 print({acc: len(seq) for acc, seq in fasta_dict.items()})
+
+# Search fasta_dict for isoform sequences (accessions with a dash in UniProt convention, e.g. "P12345-2")
+isoform_seqs = {acc: seq for acc, seq in fasta_dict.items() if "-" in acc}
+print("Isoform sequences found:", {acc: len(seq) for acc, seq in isoform_seqs.items()})
