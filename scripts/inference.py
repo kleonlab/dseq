@@ -1,3 +1,12 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# Load from a specific checkpoint
+model = AutoModelForCausalLM.from_pretrained("./tf_finetune/checkpoint-500")
+tokenizer = AutoTokenizer.from_pretrained("./tf_finetune/checkpoint-500")
+
+# Or from the final output_dir
+model = AutoModelForCausalLM.from_pretrained("./tf_finetune")
+
 prompt = "[SPECIES=HUMAN] [TF_CLASS=HOMEOBOX]"
 input_ids = tokenizer(prompt, return_tensors="pt").input_ids
 gen_ids = model.generate(
