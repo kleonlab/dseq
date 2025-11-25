@@ -47,5 +47,3 @@ The fine-tuning process is implemented in `scripts/finetune.py`. It uses the Hug
     -   Precision: FP16 (mixed precision)
     -   Output Directory: `./tf_finetune`
 
-> [!NOTE]
-> The current `finetune.py` script performs standard fine-tuning on protein sequences. The HTH scaffold tokenization (implemented in `dataloader/tokenize_data.py`) is a feature for advanced structural conditioning and is ready to be integrated into the training loop.
