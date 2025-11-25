@@ -1,6 +1,5 @@
 import torch
 
-# Define the scaffold vocabulary
 SCAFFOLD_VOCAB = {
     "Loop_N": 0,
     "H1_core": 1,
@@ -24,8 +23,6 @@ def align_hth_to_scaffold(sequence: str) -> list[str]:
     """
     seq_len = len(sequence)
     
-    # Mock logic: distribute length roughly across regions
-    # This is purely heuristic for the mock
     if seq_len < 10:
         # Too short, just pad with Loop_N/Loop_C
         return ["Loop_N"] * seq_len
@@ -38,9 +35,7 @@ def align_hth_to_scaffold(sequence: str) -> list[str]:
     if remaining < 4:
          return ["Loop_N"] * seq_len # Fallback
          
-    # Split remaining roughly into 4 parts: Loop_N, H1_core, H2_core, Loop_C
-    # And H2_contact is usually part of H2, let's say H2_core and H2_contact share the 2nd helix space
-    
+
     part = remaining // 5
     loop_n_len = part
     h1_core_len = part
